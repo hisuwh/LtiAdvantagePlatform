@@ -6,6 +6,32 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnectionString"));
+    options.UseOpenIddict();
+});
+
+builder.Services.AddOpenIddict()
+    .AddCore(options =>
+    {
+        options
+            .UseEntityFrameworkCore()
+            .UseDbContext<ApplicationDbContext>();
+    })
+    .AddServer(options =>
+    {
+        options.SetTokenEndpointUris("connect/token");
+        options.AllowClientCredentialsFlow();
+
+        options
+            .AddDevelopmentEncryptionCertificate()
+            .AddDevelopmentSigningCertificate();
+
+        options
+            .UseAspNetCore()
+            .EnableTokenEndpointPassthrough();
+    });
 
 var app = builder.Build();
 
